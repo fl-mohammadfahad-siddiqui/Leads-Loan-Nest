@@ -1,0 +1,16 @@
+{
+  "loan-application": [
+    "lead",
+    "ckyc",
+    "business",
+    "cibil",
+    "gst",
+    "loan",
+    "document"
+  ],
+  "fast-track-workflow": [
+    "lead",
+    "loan",
+    "document"
+  ]
+}
