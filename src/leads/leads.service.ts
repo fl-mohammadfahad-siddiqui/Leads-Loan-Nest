@@ -3,6 +3,8 @@ import { InjectModel } from '@nestjs/sequelize';
 import { Lead, LeadCreationAttributes } from './leads.model';
 import { CreateLeadDto } from './dto/create-lead.dto';
 import { UpdateLeadDto } from './dto/update-lead.dto';
+import { UniqueConstraintError } from 'sequelize';
+import { BadRequestException } from '@nestjs/common';
 
 @Injectable()
 export class LeadsService {
@@ -15,7 +17,16 @@ export class LeadsService {
             ...dto,
             dob: new Date(dto.dob),
         };
-        return this.leadModel.create(leadData, { returning: true });
+        try {
+            return await this.leadModel.create(leadData, { returning: true });
+        } catch (err: any) {
+            if (err instanceof UniqueConstraintError) {
+                const field = err.errors?.[0]?.path || 'field';
+                const value = err.errors?.[0]?.value || '';
+                throw new BadRequestException(`${field} "${value}" must be unique`);
+            }
+            throw err;
+        }
     }
 
     async findAll(){
@@ -34,7 +45,16 @@ export class LeadsService {
             ...dto,
             dob: dto.dob? new Date(dto.dob) : undefined,
         }
-        return lead.update(updateData)
+        try{
+            return await lead.update(updateData)
+        } catch(err:any) {
+            if(err instanceof UniqueConstraintError){
+                const field = err.errors?.[0]?.path || 'field';
+                const value = err.errors?.[0]?.value || '';
+                throw new BadRequestException(`${field} "${value}" must be unique`)
+            }
+            throw err;
+        }
     }
 
     async remove(id:number){
